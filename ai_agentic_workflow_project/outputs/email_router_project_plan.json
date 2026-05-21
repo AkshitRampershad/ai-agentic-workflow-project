@@ -1,0 +1,55 @@
+{
+  "project": "Email Router",
+  "workflow_goal": "Transform the Email Router product specification into a structured technical project plan containing user stories, product features, and detailed engineering tasks.",
+  "action_plan": [
+    {
+      "id": "T1",
+      "objective": "Generate user stories",
+      "expected_output": "User stories with acceptance criteria",
+      "recommended_team": "product_manager_team"
+    },
+    {
+      "id": "T2",
+      "objective": "Define product features",
+      "expected_output": "Feature backlog with value statements",
+      "recommended_team": "program_manager_team"
+    },
+    {
+      "id": "T3",
+      "objective": "Create engineering tasks",
+      "expected_output": "Implementation tasks with dependencies",
+      "recommended_team": "development_engineer_team"
+    }
+  ],
+  "work_products": {
+    "user_stories": {
+      "assigned_route": "product_manager_team",
+      "artifact": "{\n  \"score\": 8,\n  \"passed\": true,\n  \"feedback\": \"Output is structured, testable, and aligned with project-management criteria.\"\n}"
+    },
+    "product_features": {
+      "assigned_route": "program_manager_team",
+      "artifact": "{\n  \"score\": 8,\n  \"passed\": true,\n  \"feedback\": \"Output is structured, testable, and aligned with project-management criteria.\"\n}"
+    },
+    "engineering_tasks": {
+      "assigned_route": "development_engineer_team",
+      "artifact": "{\n  \"score\": 8,\n  \"passed\": true,\n  \"feedback\": \"Output is structured, testable, and aligned with project-management criteria.\"\n}"
+    }
+  },
+  "evaluation_summary": {
+    "user_stories": {
+      "score": 8,
+      "passed": true,
+      "feedback": "Output is structured, testable, and aligned with project-management criteria."
+    },
+    "product_features": {
+      "score": 8,
+      "passed": true,
+      "feedback": "Output is structured, testable, and aligned with project-management criteria."
+    },
+    "engineering_tasks": {
+      "score": 8,
+      "passed": true,
+      "feedback": "Output is structured, testable, and aligned with project-management criteria."
+    }
+  }
+}

@@ -1,0 +1,9 @@
+AGENT: KnowledgeAugmentedPromptAgent
+METADATA: {
+  "agent_type": "knowledge_augmented_prompt"
+}
+OUTPUT:
+As a support representative, I want inbound emails automatically categorized so that I can prioritize work quickly.
+As an operations manager, I want uncertain emails placed into a review queue so that routing errors are controlled.
+As an administrator, I want to configure routing rules so that queues reflect current business operations.
+As a TPM, I want audit logs for every routing decision so that compliance and debugging are easier.

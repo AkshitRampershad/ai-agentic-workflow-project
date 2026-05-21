@@ -1,0 +1,58 @@
+AGENT: DirectPromptAgent
+METADATA: {
+  "agent_type": "direct_prompt"
+}
+OUTPUT:
+Generated response based on the supplied project-management context.
+
+AGENT: AugmentedPromptAgent
+METADATA: {
+  "agent_type": "augmented_prompt"
+}
+OUTPUT:
+Generated response based on the supplied project-management context.
+
+AGENT: KnowledgeAugmentedPromptAgent
+METADATA: {
+  "agent_type": "knowledge_augmented_prompt"
+}
+OUTPUT:
+As a support representative, I want inbound emails automatically categorized so that I can prioritize work quickly.
+As an operations manager, I want uncertain emails placed into a review queue so that routing errors are controlled.
+As an administrator, I want to configure routing rules so that queues reflect current business operations.
+As a TPM, I want audit logs for every routing decision so that compliance and debugging are easier.
+
+AGENT: RAGKnowledgePromptAgent
+METADATA: {
+  "agent_type": "rag_knowledge_prompt",
+  "retrieved_count": 1
+}
+OUTPUT:
+{
+  "route": "product_manager_team",
+  "reason": "The task requires translating product context into planning artifacts."
+}
+
+AGENT: EvaluationAgent
+METADATA: {
+  "agent_type": "evaluation"
+}
+OUTPUT:
+{'score': 8, 'passed': True, 'feedback': 'Output is structured, testable, and aligned with project-management criteria.'}
+
+AGENT: RoutingAgent
+METADATA: {
+  "agent_type": "routing"
+}
+OUTPUT:
+{'route': 'development_engineer_team', 'description': 'Eng'}
+
+AGENT: ActionPlanningAgent
+METADATA: {
+  "agent_type": "action_planning",
+  "llm_notes": "1. Analyze the product specification.\n2. Generate user stories.\n3. Define product features.\n4. Create engineering implementation tasks.\n5. Evaluate each artifact for completeness and feasibility.\n6. Compile final project backlog."
+}
+OUTPUT:
+[{'id': 'T1', 'objective': 'Generate user stories', 'expected_output': 'User stories with acceptance criteria', 'recommended_team': 'product_manager_team'}, {'id': 'T2', 'objective': 'Define product features', 'expected_output': 'Feature backlog with value statements', 'recommended_team': 'program_manager_team'}, {'id': 'T3', 'objective': 'Create engineering tasks', 'expected_output': 'Implementation tasks with dependencies', 'recommended_team': 'development_engineer_team'}]
+
+Workflow output written to outputs/agentic_workflow_terminal_output.txt

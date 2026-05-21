@@ -1,0 +1,6 @@
+AGENT: AugmentedPromptAgent
+METADATA: {
+  "agent_type": "augmented_prompt"
+}
+OUTPUT:
+Generated response based on the supplied project-management context.

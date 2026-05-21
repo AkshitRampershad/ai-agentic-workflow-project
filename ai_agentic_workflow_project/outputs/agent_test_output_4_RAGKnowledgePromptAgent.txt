@@ -1,0 +1,10 @@
+AGENT: RAGKnowledgePromptAgent
+METADATA: {
+  "agent_type": "rag_knowledge_prompt",
+  "retrieved_count": 1
+}
+OUTPUT:
+{
+  "route": "product_manager_team",
+  "reason": "The task requires translating product context into planning artifacts."
+}

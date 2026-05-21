@@ -1,0 +1,6 @@
+AGENT: EvaluationAgent
+METADATA: {
+  "agent_type": "evaluation"
+}
+OUTPUT:
+{'score': 8, 'passed': True, 'feedback': 'Output is structured, testable, and aligned with project-management criteria.'}

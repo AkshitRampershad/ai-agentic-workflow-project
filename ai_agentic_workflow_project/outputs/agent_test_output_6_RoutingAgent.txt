@@ -1,0 +1,6 @@
+AGENT: RoutingAgent
+METADATA: {
+  "agent_type": "routing"
+}
+OUTPUT:
+{'route': 'development_engineer_team', 'description': 'Eng'}

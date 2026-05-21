@@ -1,0 +1,6 @@
+AGENT: DirectPromptAgent
+METADATA: {
+  "agent_type": "direct_prompt"
+}
+OUTPUT:
+Generated response based on the supplied project-management context.

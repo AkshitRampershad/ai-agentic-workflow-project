@@ -1,0 +1,7 @@
+AGENT: ActionPlanningAgent
+METADATA: {
+  "agent_type": "action_planning",
+  "llm_notes": "1. Analyze the product specification.\n2. Generate user stories.\n3. Define product features.\n4. Create engineering implementation tasks.\n5. Evaluate each artifact for completeness and feasibility.\n6. Compile final project backlog."
+}
+OUTPUT:
+[{'id': 'T1', 'objective': 'Generate user stories', 'expected_output': 'User stories with acceptance criteria', 'recommended_team': 'product_manager_team'}, {'id': 'T2', 'objective': 'Define product features', 'expected_output': 'Feature backlog with value statements', 'recommended_team': 'program_manager_team'}, {'id': 'T3', 'objective': 'Create engineering tasks', 'expected_output': 'Implementation tasks with dependencies', 'recommended_team': 'development_engineer_team'}]
