@@ -2,90 +2,78 @@
 
 Pilot project: **Email Router**
 
-This repository implements a reusable multi-agent workflow for technical project management. It converts a product specification into structured user stories, product features, and engineering tasks using agent planning, routing, knowledge augmentation, and evaluation.
+A reusable multi-agent workflow for technical project management. It takes a raw product specification and turns it into structured user stories, product features, and engineering tasks — using a planning agent to break the goal into sub-tasks, a routing agent to send each sub-task to the right specialist agent, and evaluation agents to score every artifact the workflow produces.
+
+## How It Works
+1. **`ActionPlanningAgent`** breaks the high-level goal ("turn this spec into a project plan") into ordered sub-tasks: generate user stories, define features, create engineering tasks.
+2. **`RoutingAgent`** inspects each sub-task and routes it to the product manager, program manager, or development engineer "team".
+3. **`KnowledgeAugmentedPromptAgent`** generates the actual artifact for that team, using the product spec as fixed domain knowledge injected into the prompt.
+4. An **`EvaluationAgent`** scores each artifact against team-specific criteria (e.g. "uses Agile user-story format," "features map to product goals," "tasks are technically actionable") and returns a score, pass/fail, and feedback.
+5. The full plan — action plan, generated artifacts, and evaluation scores — is written to `outputs/email_router_project_plan.json`.
+
+## Agent Library
+The workflow is built on seven reusable agent classes in `workflow_agents/base_agents.py`, all sharing one `LLMService` wrapper:
+
+| Agent | Role |
+| --- | --- |
+| `DirectPromptAgent` | Sends a prompt straight to the LLM, no augmentation |
+| `AugmentedPromptAgent` | Adds an explicit instruction/persona around the prompt |
+| `KnowledgeAugmentedPromptAgent` | Injects fixed domain knowledge (the product spec) into the prompt |
+| `RAGKnowledgePromptAgent` | Retrieves the most relevant documents from an in-memory corpus before answering |
+| `EvaluationAgent` | Scores an artifact against a configurable list of criteria |
+| `RoutingAgent` | Routes a task to the appropriate specialist team based on keywords |
+| `ActionPlanningAgent` | Decomposes a high-level goal into ordered, assignable sub-tasks |
+
+The main pipeline (`agentic_workflow.py`) wires up `ActionPlanningAgent`, `RoutingAgent`, `KnowledgeAugmentedPromptAgent`, and `EvaluationAgent`. `DirectPromptAgent`, `AugmentedPromptAgent`, and `RAGKnowledgePromptAgent` are demonstrated independently via `run_tests.py` and the test suite.
+
+An **offline mode** in `LLMService` returns deterministic, hand-written responses for each agent type — useful for running tests and demos without hitting the LLM API or incurring cost.
 
 ## Project Structure
-
 ```text
-workflow_agents/
-  base_agents.py        # Seven reusable agent classes
-  config.py             # Vocareum/OpenAI configuration
-  llm_service.py        # Shared LLM wrapper with offline mode
-agentic_workflow.py     # Main orchestration workflow
-Product-Spec-Email-Router.txt
-run_tests.py            # Generates terminal-style submission outputs
-tests/                  # Pytest validation tests
-outputs/                # Generated test and workflow outputs
+ai_agentic_workflow_project/
+  workflow_agents/
+    base_agents.py         # The seven agent classes
+    config.py               # LLM client / Vocareum-OpenAI configuration
+    llm_service.py           # Shared LLM wrapper with offline mode
+  agentic_workflow.py        # Main orchestration pipeline
+  Product-Spec-Email-Router.txt   # Pilot product spec used as input
+  run_tests.py                # Exercises all seven agents, writes outputs/ for review
+  tests/                      # Pytest test suite
+  outputs/                    # Generated workflow and test outputs
+  requirements.txt
 ```
 
-## Implemented Agents
-
-1. `DirectPromptAgent`
-2. `AugmentedPromptAgent`
-3. `KnowledgeAugmentedPromptAgent`
-4. `RAGKnowledgePromptAgent`
-5. `EvaluationAgent`
-6. `RoutingAgent`
-7. `ActionPlanningAgent`
-
 ## Setup
-
 ```bash
+cd ai_agentic_workflow_project
 python -m venv .venv
 source .venv/bin/activate      # Mac/Linux
 # .venv\Scripts\activate       # Windows
 pip install -r requirements.txt
 ```
 
-## Vocareum API Configuration
-
-Create a `.env` file:
-
+## Configuration
+This project is set up to route OpenAI-compatible chat completions through Vocareum. Create a `.env` file inside `ai_agentic_workflow_project/` (see `.env.example`):
 ```bash
 VOC_API_KEY=voc-your-key-here
 OPENAI_BASE_URL=https://openai.vocareum.com/v1
 OPENAI_MODEL=gpt-4o-mini
 ```
+Omit or leave this unset to run everything in offline mode using the deterministic mock responses.
 
-The project is configured for Vocareum routing through:
+## Usage
 
-```python
-base_url="https://openai.vocareum.com/v1"
-```
-
-## Run the Main Workflow
-
+Run the main workflow (reads `Product-Spec-Email-Router.txt`, writes the full project plan to `outputs/email_router_project_plan.json`):
 ```bash
 python agentic_workflow.py
 ```
 
-The workflow output is written to:
-
-```text
-outputs/email_router_project_plan.json
-```
-
-## Generate Submission Outputs
-
+Exercise all seven agents individually and write per-agent outputs to `outputs/` for review:
 ```bash
 python run_tests.py
 ```
 
-This writes text outputs for each agent and the full workflow into the `outputs/` folder.
-
-## Run Automated Tests
-
+Run the automated test suite:
 ```bash
 pytest -q
-```
-
-## GitHub Push Commands
-
-```bash
-git init
-git add .
-git commit -m "Complete AI-powered agentic workflow project"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
-git push -u origin main
 ```
