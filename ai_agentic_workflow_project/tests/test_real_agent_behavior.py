@@ -14,9 +14,19 @@ underlying OpenAI client) rather than actually calling out.
 import json
 from unittest.mock import MagicMock, patch
 
+import httpx
+import openai
+
 from workflow_agents.base_agents import ActionPlanningAgent, KnowledgeAugmentedPromptAgent, RoutingAgent
 from workflow_agents.config import LLMConfig
 from workflow_agents.llm_service import LLMService
+
+
+def _rate_limit_error(retry_after: str | None = None) -> openai.RateLimitError:
+    headers = {"retry-after": retry_after} if retry_after else {}
+    request = httpx.Request("POST", "https://api.groq.com/openai/v1/chat/completions")
+    response = httpx.Response(429, headers=headers, request=request)
+    return openai.RateLimitError("Rate limit reached", response=response, body=None)
 
 
 ROUTES = {
@@ -171,3 +181,51 @@ def test_live_mode_generate_calls_openai_compatible_client():
     call_kwargs = fake_client.chat.completions.create.call_args.kwargs
     assert call_kwargs["model"] == "openai/gpt-oss-120b"
     assert call_kwargs["messages"][-1] == {"role": "user", "content": "Say hello."}
+
+
+def test_generate_retries_after_rate_limit_and_succeeds():
+    """Regression test for the deployed 429 crash: a rate limit on one
+    call used to propagate straight up and crash the whole workflow.
+    It should now be retried and succeed once the client stops
+    erroring - proving the retry loop actually recovers, not just that
+    it catches the exception.
+    """
+    fake_client = MagicMock()
+    fake_client.chat.completions.create.side_effect = [
+        _rate_limit_error(retry_after="0.01"),
+        MagicMock(choices=[MagicMock(message=MagicMock(content="Recovered after retry."))]),
+    ]
+
+    with patch("workflow_agents.llm_service.build_client", return_value=fake_client):
+        llm = LLMService(config=LLMConfig(api_key="fake-key"))
+        output = llm.generate("Plan the project.")
+
+    assert output == "Recovered after retry."
+    assert fake_client.chat.completions.create.call_count == 2
+
+
+def test_generate_honors_retry_after_header():
+    with patch("workflow_agents.llm_service.time.sleep") as mock_sleep:
+        LLMService._retry_delay(_rate_limit_error(retry_after="4.28"), attempt=0)
+    mock_sleep.assert_not_called()  # _retry_delay itself doesn't sleep, it returns a delay
+    delay = LLMService._retry_delay(_rate_limit_error(retry_after="4.28"), attempt=0)
+    assert delay == 4.78  # retry-after + the fixed 0.5s buffer
+
+
+def test_generate_raises_after_exhausting_retries():
+    """A persistent (non-transient) rate limit should still surface as
+    an error eventually, rather than retrying forever or swallowing it
+    silently.
+    """
+    fake_client = MagicMock()
+    fake_client.chat.completions.create.side_effect = _rate_limit_error(retry_after="0.01")
+
+    with patch("workflow_agents.llm_service.build_client", return_value=fake_client):
+        llm = LLMService(config=LLMConfig(api_key="fake-key"))
+        try:
+            llm.generate("Plan the project.")
+            assert False, "Expected RateLimitError to be raised"
+        except openai.RateLimitError:
+            pass
+
+    assert fake_client.chat.completions.create.call_count == 5  # 1 initial + 4 retries

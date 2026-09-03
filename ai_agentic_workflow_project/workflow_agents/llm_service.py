@@ -3,9 +3,27 @@
 from __future__ import annotations
 
 import json
+import time
 from typing import Any
 
 from .config import LLMConfig, build_client
+
+try:
+    from openai import APIConnectionError, APITimeoutError, InternalServerError, RateLimitError
+except ModuleNotFoundError:  # Allows offline tests before dependencies are installed.
+    RateLimitError = APIConnectionError = APITimeoutError = InternalServerError = ()
+
+# The full workflow makes ~10 sequential calls per run (plan, then
+# route+generate+evaluate per task) - easy to exceed a free-tier TPM
+# limit (Groq's on-demand tier is a few thousand TPM) within one run.
+# These are all transient - retrying after a short wait succeeds once
+# the provider's per-minute window rolls over, so a single rate limit
+# shouldn't crash the whole workflow.
+_RETRYABLE_ERRORS = tuple(
+    e for e in (RateLimitError, APIConnectionError, APITimeoutError, InternalServerError) if e != ()
+)
+_MAX_RETRIES = 4
+_BASE_DELAY_SECONDS = 3.0
 
 
 class LLMService:
@@ -26,6 +44,11 @@ class LLMService:
         breaks when unrelated context (e.g. a product spec containing
         the word "scores") happens to contain another category's
         trigger word. Ignored in live mode; only affects offline_mode.
+
+        Transient errors (rate limits, timeouts, connection issues,
+        5xx) are retried with backoff - a rate limit mid-workflow
+        shouldn't crash the whole run when waiting a few seconds and
+        retrying that one call would succeed.
         """
 
         if self.offline_mode:
@@ -36,12 +59,35 @@ class LLMService:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
 
-        response = self.client.chat.completions.create(
-            model=self.config.model,
-            temperature=self.config.temperature,
-            messages=messages,
-        )
-        return response.choices[0].message.content or ""
+        last_error: Exception | None = None
+        for attempt in range(_MAX_RETRIES + 1):
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.config.model,
+                    temperature=self.config.temperature,
+                    messages=messages,
+                )
+                return response.choices[0].message.content or ""
+            except _RETRYABLE_ERRORS as e:
+                last_error = e
+                if attempt == _MAX_RETRIES:
+                    break
+                time.sleep(self._retry_delay(e, attempt))
+        raise last_error
+
+    @staticmethod
+    def _retry_delay(error: Exception, attempt: int) -> float:
+        # Prefer the provider's own Retry-After hint (e.g. Groq's
+        # "Please try again in 4.28s" 429s include this header) over a
+        # guessed backoff.
+        response = getattr(error, "response", None)
+        retry_after = response.headers.get("retry-after") if response is not None else None
+        if retry_after:
+            try:
+                return float(retry_after) + 0.5
+            except ValueError:
+                pass
+        return _BASE_DELAY_SECONDS * (2**attempt)
 
     _HINTED_RESPONSES = {
         "evaluation": lambda: json.dumps({
