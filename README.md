@@ -53,13 +53,20 @@ pip install -r requirements.txt
 ```
 
 ## Configuration
-This project is set up to route OpenAI-compatible chat completions through Vocareum. Create a `.env` file inside `ai_agentic_workflow_project/` (see `.env.example`):
+This project defaults to [Groq](https://console.groq.com/keys) (OpenAI-compatible chat completions, free tier available) - the original Vocareum gateway this was built for is only reachable with an active Udacity course subscription, which most people running this afterward won't have. Create a `.env` file inside `ai_agentic_workflow_project/` (see `.env.example`):
 ```bash
-VOC_API_KEY=voc-your-key-here
-OPENAI_BASE_URL=https://openai.vocareum.com/v1
-OPENAI_MODEL=gpt-4o-mini
+GROQ_API_KEY=gsk-your-groq-key-here
 ```
-Omit or leave this unset to run everything in offline mode using the deterministic mock responses.
+An OpenAI key or a Vocareum key both work too (see `.env.example` for the alternative env vars) - whichever of `GROQ_API_KEY`, `VOC_API_KEY`, `OPENAI_API_KEY` is set first, in that order, is used. Leave all three unset to run everything in offline mode using deterministic mock responses (no API calls, no cost).
+
+### What makes this a real agentic workflow, not just prompt templates
+Two agents used to only look LLM-driven:
+- **`RoutingAgent`** used to route purely by keyword-matching the task text - it never called the LLM at all. It now asks the LLM to choose a team from the configured route descriptions and returns its reasoning; a keyword heuristic is kept only as a fallback if the LLM's response can't be parsed into one of the configured routes.
+- **`ActionPlanningAgent`** used to call the LLM, then discard its response and return the same hardcoded 3-task list every time. It now parses and returns the LLM's actual task breakdown (which can vary in count and content with the input), falling back to a fixed 3-task list only if that response is malformed.
+
+Both fallback paths are real safety nets, not silent failures: each result's `metadata["fallback_used"]` says whether the LLM's decision was used or the deterministic fallback kicked in, so a malformed response degrades gracefully instead of crashing the workflow.
+
+Along the way, a real bug in offline mode was also fixed: `LLMService`'s canned-response picker used to substring-match the *entire* prompt, including the injected product-spec knowledge base - which contains the word "scores" (`"...confidence scores..."`). That word matched the evaluation-response branch *before* any of the artifact-specific branches got a chance to match, so every `KnowledgeAugmentedPromptAgent` (user stories, product features, engineering tasks) silently returned the same canned evaluation JSON instead of its real artifact. `generate()` now takes an explicit `response_hint` so each agent picks its own canned response deterministically instead of relying on prompt-text sniffing.
 
 ## Usage
 

@@ -1,4 +1,11 @@
-"""Configuration helpers for Vocareum/OpenAI access."""
+"""Configuration helpers for LLM access.
+
+Defaults to Groq (OpenAI-compatible chat completions, free tier
+available) since Vocareum's gateway is only reachable with a Udacity
+course subscription. Any OpenAI-compatible provider - Groq, OpenAI
+itself, Vocareum, etc. - works by setting the matching env vars; the
+first API key found below wins.
+"""
 
 from __future__ import annotations
 
@@ -12,15 +19,50 @@ except ModuleNotFoundError:  # Allows offline tests before dependencies are inst
 
 load_dotenv()
 
+_DEFAULT_BASE_URLS = {
+    "GROQ_API_KEY": "https://api.groq.com/openai/v1",
+    "VOC_API_KEY": "https://openai.vocareum.com/v1",
+    "OPENAI_API_KEY": "https://api.openai.com/v1",
+}
+_DEFAULT_MODELS = {
+    "GROQ_API_KEY": "llama-3.3-70b-versatile",
+    "VOC_API_KEY": "gpt-4o-mini",
+    "OPENAI_API_KEY": "gpt-4o-mini",
+}
+
+
+def _detect_provider() -> str:
+    """Pick the first configured provider's env-var name, in preference
+    order (Groq first - it's the one this project ships working
+    defaults for).
+    """
+    for env_var in ("GROQ_API_KEY", "VOC_API_KEY", "OPENAI_API_KEY"):
+        if os.getenv(env_var):
+            return env_var
+    return "GROQ_API_KEY"
+
 
 @dataclass(frozen=True)
 class LLMConfig:
-    """Runtime configuration for LLM calls."""
+    """Runtime configuration for LLM calls. Any field left as None picks
+    up a provider-appropriate default independently - passing just
+    api_key explicitly, for example, still resolves base_url/model from
+    whichever provider that key's env var indicates (Groq by default).
+    """
 
-    api_key: str | None = os.getenv("VOC_API_KEY") or os.getenv("OPENAI_API_KEY")
-    base_url: str = os.getenv("OPENAI_BASE_URL", "https://openai.vocareum.com/v1")
-    model: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    api_key: str | None = None
+    base_url: str | None = None
+    model: str | None = None
     temperature: float = float(os.getenv("OPENAI_TEMPERATURE", "0.2"))
+
+    def __post_init__(self):
+        provider = _detect_provider()
+        if self.api_key is None:
+            object.__setattr__(self, "api_key", os.getenv(provider))
+        if self.base_url is None:
+            object.__setattr__(self, "base_url", os.getenv("OPENAI_BASE_URL") or _DEFAULT_BASE_URLS[provider])
+        if self.model is None:
+            object.__setattr__(self, "model", os.getenv("OPENAI_MODEL") or _DEFAULT_MODELS[provider])
 
 
 def build_client(config: LLMConfig | None = None):

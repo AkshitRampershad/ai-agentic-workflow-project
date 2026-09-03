@@ -1,6 +1,7 @@
 AGENT: RoutingAgent
 METADATA: {
-  "agent_type": "routing"
+  "agent_type": "routing",
+  "fallback_used": true
 }
 OUTPUT:
-{'route': 'development_engineer_team', 'description': 'Eng'}
+{'route': 'development_engineer_team', 'description': 'Eng', 'reason': 'Keyword-based fallback (LLM did not return a valid route).'}

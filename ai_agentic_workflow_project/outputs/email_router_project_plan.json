@@ -24,15 +24,15 @@
   "work_products": {
     "user_stories": {
       "assigned_route": "product_manager_team",
-      "artifact": "{\n  \"score\": 8,\n  \"passed\": true,\n  \"feedback\": \"Output is structured, testable, and aligned with project-management criteria.\"\n}"
+      "artifact": "As a support representative, I want inbound emails automatically categorized so that I can prioritize work quickly.\nAs an operations manager, I want uncertain emails placed into a review queue so that routing errors are controlled.\nAs an administrator, I want to configure routing rules so that queues reflect current business operations.\nAs a TPM, I want audit logs for every routing decision so that compliance and debugging are easier."
     },
     "product_features": {
       "assigned_route": "program_manager_team",
-      "artifact": "{\n  \"score\": 8,\n  \"passed\": true,\n  \"feedback\": \"Output is structured, testable, and aligned with project-management criteria.\"\n}"
+      "artifact": "Feature 1: Intelligent Email Classification\nFeature 2: Rule-Based Routing Engine\nFeature 3: Human Review Exception Queue\nFeature 4: Audit Logging and Decision Traceability\nFeature 5: Admin Routing Configuration\nFeature 6: Operational Reporting Dashboard"
     },
     "engineering_tasks": {
       "assigned_route": "development_engineer_team",
-      "artifact": "{\n  \"score\": 8,\n  \"passed\": true,\n  \"feedback\": \"Output is structured, testable, and aligned with project-management criteria.\"\n}"
+      "artifact": "1. Implement email ingestion connector with mailbox/API integration.\n2. Build parser for headers, body, metadata, and attachment metadata.\n3. Implement classification service with confidence scoring.\n4. Create routing-rule engine and queue assignment logic.\n5. Add audit logging for decision traceability.\n6. Build admin configuration screens and reporting APIs."
     }
   },
   "evaluation_summary": {

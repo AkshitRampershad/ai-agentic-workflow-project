@@ -4,7 +4,4 @@ METADATA: {
   "retrieved_count": 1
 }
 OUTPUT:
-{
-  "route": "product_manager_team",
-  "reason": "The task requires translating product context into planning artifacts."
-}
+Offline mode: no live LLM available in this environment to reason about routing - falling back to keyword-based routing.

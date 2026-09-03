@@ -46,18 +46,21 @@ def build_workflow(offline_mode: bool = False):
             product_spec,
             "Generate Agile user stories with acceptance criteria for the Email Router pilot.",
             llm,
+            response_hint="user_stories",
         ),
         "pgm": KnowledgeAugmentedPromptAgent(
             "ProgramManagerAgent",
             product_spec,
             "Define product features, delivery dependencies, milestones, and risks.",
             llm,
+            response_hint="product_features",
         ),
         "eng": KnowledgeAugmentedPromptAgent(
             "DevelopmentEngineerAgent",
             product_spec,
             "Create detailed engineering tasks, technical dependencies, APIs, data needs, and validation steps.",
             llm,
+            response_hint="engineering_tasks",
         ),
         "story_eval": EvaluationAgent(
             "UserStoryEvaluationAgent",
