@@ -28,9 +28,9 @@ def load_product_spec(path: Path = SPEC_PATH) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def build_workflow(offline_mode: bool = False):
+def build_workflow(offline_mode: bool = False, product_spec: str | None = None):
     llm = LLMService(offline_mode=offline_mode)
-    product_spec = load_product_spec()
+    product_spec = product_spec if product_spec is not None else load_product_spec()
 
     routes = {
         "product_manager_team": "Creates user stories and acceptance criteria.",
@@ -96,8 +96,8 @@ def build_workflow(offline_mode: bool = False):
     return agents
 
 
-def run_agentic_workflow(offline_mode: bool = False) -> dict:
-    agents = build_workflow(offline_mode=offline_mode)
+def run_agentic_workflow(offline_mode: bool = False, product_spec: str | None = None, write_output: bool = True) -> dict:
+    agents = build_workflow(offline_mode=offline_mode, product_spec=product_spec)
 
     high_level_prompt = (
         "Transform the Email Router product specification into a structured technical project plan "
@@ -136,8 +136,9 @@ def run_agentic_workflow(offline_mode: bool = False) -> dict:
         }
         final_output["evaluation_summary"][key] = evaluation.output
 
-    OUTPUT_PATH.parent.mkdir(exist_ok=True)
-    OUTPUT_PATH.write_text(json.dumps(final_output, indent=2), encoding="utf-8")
+    if write_output:
+        OUTPUT_PATH.parent.mkdir(exist_ok=True)
+        OUTPUT_PATH.write_text(json.dumps(final_output, indent=2), encoding="utf-8")
     return final_output
 
 

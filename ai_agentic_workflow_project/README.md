@@ -33,9 +33,10 @@ An **offline mode** in `LLMService` returns deterministic, hand-written response
 ai_agentic_workflow_project/
   workflow_agents/
     base_agents.py         # The seven agent classes
-    config.py               # LLM client / Vocareum-OpenAI configuration
+    config.py               # LLM client / provider configuration
     llm_service.py           # Shared LLM wrapper with offline mode
   agentic_workflow.py        # Main orchestration pipeline
+  app.py                     # Streamlit demo (workflow run + agent playground)
   Product-Spec-Email-Router.txt   # Pilot product spec used as input
   run_tests.py                # Exercises all seven agents, writes outputs/ for review
   tests/                      # Pytest test suite
@@ -84,3 +85,25 @@ Run the automated test suite:
 ```bash
 pytest -q
 ```
+
+### Streamlit demo
+```bash
+streamlit run app.py
+```
+Two views: **Run the Workflow** runs the full pipeline on the Email Router spec (or one you paste in) and shows the action plan, each routing decision (with its LLM-given reason and whether a fallback kicked in), the generated artifacts, and their evaluation scores. **Agent Playground** runs any of the seven agent classes individually with your own input.
+
+Add your Groq key as a Streamlit secret before running (never commit this file - it's gitignored):
+```bash
+cp .streamlit/secrets.toml.example .streamlit/secrets.toml
+# then edit .streamlit/secrets.toml with your real key
+```
+Without a key configured, the app runs in offline mode (deterministic mock responses, clearly labeled in the UI) rather than failing.
+
+### Deploying to Streamlit Community Cloud
+1. Push this repo to GitHub (already done if you're reading this from the deployed app's source).
+2. At [share.streamlit.io](https://share.streamlit.io), create a new app pointing at this repo, with **`ai_agentic_workflow_project/app.py`** as the main file path (note the subdirectory - the Streamlit app isn't at the repo root).
+3. In the app's **Settings → Secrets**, paste:
+   ```toml
+   GROQ_API_KEY = "your-groq-api-key"
+   ```
+4. Deploy. The workflow runs in live LLM mode immediately; omit the secret to run in offline mode instead.
