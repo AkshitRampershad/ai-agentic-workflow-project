@@ -92,6 +92,8 @@ streamlit run app.py
 ```
 Two views: **Run the Workflow** runs the full pipeline on the Email Router spec (or one you paste in) and shows the action plan, each routing decision (with its LLM-given reason and whether a fallback kicked in), the generated artifacts, and their evaluation scores. **Agent Playground** runs any of the seven agent classes individually with your own input.
 
+A full run makes ~10 sequential LLM calls (1 planning call, then route + generate + evaluate for each of the plan's tasks), which can trip a free-tier rate limit. Transient errors (rate limits, timeouts, 5xx) are retried automatically with backoff, honoring the provider's `Retry-After` hint. If you'd rather pace the calls yourself, switch **Run the Workflow**'s mode to *"Step through manually"* - each click of "Run this step" fires exactly one LLM call and shows its result immediately, so you control the timing between requests.
+
 Add your Groq key as a Streamlit secret before running (never commit this file - it's gitignored):
 ```bash
 cp .streamlit/secrets.toml.example .streamlit/secrets.toml
