@@ -25,7 +25,9 @@ _DEFAULT_BASE_URLS = {
     "OPENAI_API_KEY": "https://api.openai.com/v1",
 }
 _DEFAULT_MODELS = {
-    "GROQ_API_KEY": "llama-3.3-70b-versatile",
+    # llama-3.3-70b-versatile was deprecated by Groq (June 2026); this is
+    # their recommended replacement for general-purpose/agentic use.
+    "GROQ_API_KEY": "openai/gpt-oss-120b",
     "VOC_API_KEY": "gpt-4o-mini",
     "OPENAI_API_KEY": "gpt-4o-mini",
 }

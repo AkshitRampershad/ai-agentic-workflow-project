@@ -161,7 +161,7 @@ def test_live_mode_generate_calls_openai_compatible_client():
     )
 
     with patch("workflow_agents.llm_service.build_client", return_value=fake_client):
-        llm = LLMService(config=LLMConfig(api_key="fake-key", base_url="https://api.groq.com/openai/v1", model="llama-3.3-70b-versatile"))
+        llm = LLMService(config=LLMConfig(api_key="fake-key", base_url="https://api.groq.com/openai/v1", model="openai/gpt-oss-120b"))
         assert llm.offline_mode is False
 
         output = llm.generate("Say hello.", response_hint="user_stories")
@@ -169,5 +169,5 @@ def test_live_mode_generate_calls_openai_compatible_client():
     assert output == "Live LLM response."
     fake_client.chat.completions.create.assert_called_once()
     call_kwargs = fake_client.chat.completions.create.call_args.kwargs
-    assert call_kwargs["model"] == "llama-3.3-70b-versatile"
+    assert call_kwargs["model"] == "openai/gpt-oss-120b"
     assert call_kwargs["messages"][-1] == {"role": "user", "content": "Say hello."}
